@@ -12,10 +12,23 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	_, err = ec2.NewInstance(c)
+	//new instance
+	resrv, err := ec2.NewInstance(c)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
+	fmt.Println("available instances are:")
+	for _, ins := range resrv.Instances {
+		fmt.Println(*ins.InstanceId)
+	}
+
+	//delete instance
+	//err = ec2.DeleteInstances(c, "i-03a93be9c0813dc15")
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//}
+	//fmt.Println("instance successfully deleted")
+
 	return
 }
