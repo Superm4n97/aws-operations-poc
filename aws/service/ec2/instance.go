@@ -6,11 +6,15 @@ import (
 	"github.com/Superm4n97/aws-operations-poc/aws"
 	"github.com/Superm4n97/aws-operations-poc/utils"
 	ec2 "github.com/aws/aws-sdk-go/service/ec2"
+	_ "k8s.io/apimachinery/pkg/util/wait"
+	"time"
 )
 
 const (
 	//t2.xlarge is a 4 vCPU and 16 GiB Memory
-	instanceType = "t2.xlarge"
+	instanceType             = "t2.xlarge"
+	instanceStatusRunning    = "running"
+	instanceStatusTerminated = "terminated"
 
 	maxCount = 1
 	minCount = 1
@@ -47,43 +51,47 @@ func network() []*ec2.InstanceNetworkInterfaceSpecification {
 	return ret
 }
 
-func instanceSpecification(c *ec2.EC2, keypairName *string) *ec2.RunInstancesInput {
+func instanceSpecification(keypairName, subnetId string) *ec2.RunInstancesInput {
 	return &ec2.RunInstancesInput{
-		InstanceType:      utils.StringP(instanceType),
-		ImageId:           utils.StringP(imageID[aws.Region]),
-		KeyName:           keypairName,
-		NetworkInterfaces: network(),
-		MinCount:          utils.I64P(minCount),
-		MaxCount:          utils.I64P(maxCount),
+		InstanceType: utils.StringP(instanceType),
+		ImageId:      utils.StringP(imageID[aws.Region]),
+		KeyName:      &keypairName,
+		//NetworkInterfaces: network(),
+		MinCount: utils.I64P(minCount),
+		MaxCount: utils.I64P(maxCount),
+		SubnetId: &subnetId,
 	}
 }
 
-// NewInstance will create
-// * KeyPair
-// * Instance
-func NewInstance(c *ec2.EC2) (*ec2.Reservation, error) {
-	kpout, err := newKeyPair(c)
-	if err != nil {
-		return nil, err
+func waitForInstanceStatus(c *ec2.EC2, instanceID, state string) error {
+	var interval time.Duration = 5 //interval in second
+	retry := 10
+	for i := 1; i <= retry; i++ {
+		ins, err := getInstace(c, instanceID)
+		if err != nil {
+			return err
+		}
+		fmt.Println(fmt.Sprintf("retry %d: instance condition %s", i, *ins.State.Name))
+		if *ins.State.Name == state {
+			return nil
+		}
+		time.Sleep(interval * time.Second)
 	}
-	fmt.Println("keypair created")
+	return errors.New("request timeout")
+}
 
-	input := instanceSpecification(c, kpout.KeyName)
-	if err != nil {
-		return nil, err
-	}
+func NewInstance(c *ec2.EC2, keypairName, subnetId string) (*ec2.Instance, error) {
+	input := instanceSpecification(keypairName, subnetId)
 	reserv, err := c.RunInstances(input)
 	if err != nil {
-		keypairErr := deleteKeyPair(c, *kpout.KeyName)
-		if err != nil {
-			err = errors.Join(err, keypairErr)
-		} else {
-			fmt.Println("keypair deleted")
-		}
 		return nil, err
 	}
 
-	return reserv, nil
+	for _, ins := range reserv.Instances {
+		err = waitForInstanceStatus(c, *ins.InstanceId, instanceStatusRunning)
+		return ins, err
+	}
+	return nil, errors.New(fmt.Sprintf("failed to create instance"))
 }
 
 func getInstace(c *ec2.EC2, id string) (*ec2.Instance, error) {
@@ -101,20 +109,12 @@ func getInstace(c *ec2.EC2, id string) (*ec2.Instance, error) {
 	return nil, errors.New(fmt.Sprintf("no instance found with id: %s", id))
 }
 
-func DeleteInstances(c *ec2.EC2, instanceId string) error {
-	ins, err := getInstace(c, instanceId)
+func RemoveInstances(c *ec2.EC2, instanceId string) error {
+	_, err := c.TerminateInstances(&ec2.TerminateInstancesInput{
+		InstanceIds: utils.StringPSlice([]string{instanceId}),
+	})
 	if err != nil {
 		return err
 	}
-
-	kpErr := deleteKeyPair(c, *ins.KeyName)
-	if kpErr != nil {
-		return kpErr
-	} else {
-		fmt.Println("keypair deleted")
-	}
-	_, err = c.TerminateInstances(&ec2.TerminateInstancesInput{
-		InstanceIds: utils.StringPSlice([]string{instanceId}),
-	})
-	return err
+	return waitForInstanceStatus(c, instanceId, instanceStatusTerminated)
 }

@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	keyPairName = "rasel-keypair"
-	keyType     = "rsa"
-	keyFormat   = "pem"
+	keyType   = "rsa"
+	keyFormat = "pem"
 )
 
 func getKeyPair(c *ec2.EC2, name string) (*ec2.KeyPairInfo, error) {
@@ -26,17 +25,17 @@ func getKeyPair(c *ec2.EC2, name string) (*ec2.KeyPairInfo, error) {
 	return nil, errors.New(fmt.Sprintf("no valid keypair found with name: %s", name))
 }
 
-func newKeyPair(c *ec2.EC2) (*ec2.CreateKeyPairOutput, error) {
+func NewKeyPair(c *ec2.EC2, keypairName string) (*ec2.CreateKeyPairOutput, error) {
 	keypairInput := &ec2.CreateKeyPairInput{
 		KeyFormat:         utils.StringP(keyFormat),
-		KeyName:           utils.StringP(keyPairName),
+		KeyName:           &keypairName,
 		KeyType:           utils.StringP(keyType),
 		TagSpecifications: nil,
 	}
 	return c.CreateKeyPair(keypairInput)
 }
 
-func deleteKeyPair(c *ec2.EC2, name string) error {
+func RemoveKeyPair(c *ec2.EC2, name string) error {
 	kp, err := getKeyPair(c, name)
 	if err != nil {
 		return err
