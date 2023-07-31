@@ -12,7 +12,7 @@ const (
 	keyFormat = "pem"
 )
 
-func getKeyPair(c *ec2.EC2, name string) (*ec2.KeyPairInfo, error) {
+func GetKeyPair(c *ec2.EC2, name string) (*ec2.KeyPairInfo, error) {
 	out, err := c.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{
 		KeyNames: utils.StringPSlice([]string{name}),
 	})
@@ -36,7 +36,7 @@ func NewKeyPair(c *ec2.EC2, keypairName string) (*ec2.CreateKeyPairOutput, error
 }
 
 func RemoveKeyPair(c *ec2.EC2, name string) error {
-	kp, err := getKeyPair(c, name)
+	kp, err := GetKeyPair(c, name)
 	if err != nil {
 		return err
 	}

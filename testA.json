@@ -1,0 +1,98 @@
+{
+  AmiLaunchIndex: 0,
+  Architecture: "x86_64",
+  CapacityReservationSpecification: {
+    CapacityReservationPreference: "open"
+  },
+  ClientToken: "3A95B3E0-2E5E-402C-B61A-FB5033D68843",
+  CpuOptions: {
+    CoreCount: 4,
+    ThreadsPerCore: 1
+  },
+  CurrentInstanceBootMode: "legacy-bios",
+  EbsOptimized: false,
+  EnaSupport: true,
+  EnclaveOptions: {
+    Enabled: false
+  },
+  Hypervisor: "xen",
+  ImageId: "ami-024e6efaf93d85776",
+  InstanceId: "i-0bd113bef91632885",
+  InstanceType: "t2.xlarge",
+  KeyName: "sdk-test",
+  LaunchTime: 2023-07-18 10:29:47 +0000 UTC,
+  MaintenanceOptions: {
+    AutoRecovery: "default"
+  },
+  MetadataOptions: {
+    HttpEndpoint: "enabled",
+    HttpProtocolIpv6: "disabled",
+    HttpPutResponseHopLimit: 1,
+    HttpTokens: "optional",
+    InstanceMetadataTags: "disabled",
+    State: "pending"
+  },
+  Monitoring: {
+    State: "disabled"
+  },
+  NetworkInterfaces: [{
+    Attachment: {
+      AttachTime: 2023-07-18 10:29:47 +0000 UTC,
+      AttachmentId: "eni-attach-072e92cbdb747310d",
+      DeleteOnTermination: true,
+      DeviceIndex: 0,
+      NetworkCardIndex: 0,
+      Status: "attaching"
+    },
+    Description: "",
+    Groups: [{
+      GroupId: "sg-0948c97304932df1d",
+      GroupName: "default"
+    }],
+    InterfaceType: "interface",
+    MacAddress: "06:18:4d:7b:d1:d9",
+    NetworkInterfaceId: "eni-0c1043ee01db55098",
+    OwnerId: "452618475015",
+    PrivateIpAddress: "10.1.231.229",
+    PrivateIpAddresses: [{
+      Primary: true,
+      PrivateIpAddress: "10.1.231.229"
+    }],
+    SourceDestCheck: true,
+    Status: "in-use",
+    SubnetId: "subnet-039b417c5b2e6efa5",
+    VpcId: "vpc-0fc0911a23c4d586f"
+  }],
+  Placement: {
+    AvailabilityZone: "us-east-2b",
+    GroupName: "",
+    Tenancy: "default"
+  },
+  PrivateDnsName: "ip-10-1-231-229.us-east-2.compute.internal",
+  PrivateDnsNameOptions: {
+    EnableResourceNameDnsAAAARecord: false,
+    EnableResourceNameDnsARecord: false,
+    HostnameType: "ip-name"
+  },
+  PrivateIpAddress: "10.1.231.229",
+  PublicDnsName: "",
+  RootDeviceName: "/dev/sda1",
+  RootDeviceType: "ebs",
+  SecurityGroups: [{
+    GroupId: "sg-0948c97304932df1d",
+    GroupName: "default"
+  }],
+  SourceDestCheck: true,
+  State: {
+    Code: 0,
+    Name: "pending"
+  },
+  StateReason: {
+    Code: "pending",
+    Message: "pending"
+  },
+  StateTransitionReason: "",
+  SubnetId: "subnet-039b417c5b2e6efa5",
+  VirtualizationType: "hvm",
+  VpcId: "vpc-0fc0911a23c4d586f"
+}

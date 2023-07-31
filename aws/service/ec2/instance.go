@@ -41,38 +41,39 @@ var imageID = map[string]string{
 	"sa-east-1":      "ami-0af6e9042ea5a4e3e",
 }
 
-func network() []*ec2.InstanceNetworkInterfaceSpecification {
+func network(subnetID *string) []*ec2.InstanceNetworkInterfaceSpecification {
 	var ret []*ec2.InstanceNetworkInterfaceSpecification
 	ret = append(ret, &ec2.InstanceNetworkInterfaceSpecification{
 		AssociatePublicIpAddress: utils.BoolP(true),
 		DeleteOnTermination:      utils.BoolP(true),
 		DeviceIndex:              utils.I64P(0),
+		SubnetId:                 subnetID,
 	})
 	return ret
 }
 
-func instanceSpecification(keypairName, subnetId string) *ec2.RunInstancesInput {
+func instanceSpecification(keypairName, subnetId *string) *ec2.RunInstancesInput {
 	return &ec2.RunInstancesInput{
-		InstanceType: utils.StringP(instanceType),
-		ImageId:      utils.StringP(imageID[aws.Region]),
-		KeyName:      &keypairName,
-		//NetworkInterfaces: network(),
-		MinCount: utils.I64P(minCount),
-		MaxCount: utils.I64P(maxCount),
-		SubnetId: &subnetId,
+		InstanceType:      utils.StringP(instanceType),
+		ImageId:           utils.StringP(imageID[aws.Region]),
+		KeyName:           keypairName,
+		NetworkInterfaces: network(subnetId),
+		MinCount:          utils.I64P(minCount),
+		MaxCount:          utils.I64P(maxCount),
+		UserData:          nil,
 	}
 }
 
-func waitForInstanceStatus(c *ec2.EC2, instanceID, state string) error {
+func waitForInstanceStatus(c *ec2.EC2, instanceID, state *string) error {
 	var interval time.Duration = 5 //interval in second
-	retry := 10
+	retry := 15
 	for i := 1; i <= retry; i++ {
-		ins, err := getInstace(c, instanceID)
+		ins, err := GetInstance(c, instanceID)
 		if err != nil {
 			return err
 		}
 		fmt.Println(fmt.Sprintf("retry %d: instance condition %s", i, *ins.State.Name))
-		if *ins.State.Name == state {
+		if *ins.State.Name == *state {
 			return nil
 		}
 		time.Sleep(interval * time.Second)
@@ -80,7 +81,7 @@ func waitForInstanceStatus(c *ec2.EC2, instanceID, state string) error {
 	return errors.New("request timeout")
 }
 
-func NewInstance(c *ec2.EC2, keypairName, subnetId string) (*ec2.Instance, error) {
+func NewInstance(c *ec2.EC2, keypairName, subnetId *string) (*ec2.Instance, error) {
 	input := instanceSpecification(keypairName, subnetId)
 	reserv, err := c.RunInstances(input)
 	if err != nil {
@@ -88,15 +89,18 @@ func NewInstance(c *ec2.EC2, keypairName, subnetId string) (*ec2.Instance, error
 	}
 
 	for _, ins := range reserv.Instances {
-		err = waitForInstanceStatus(c, *ins.InstanceId, instanceStatusRunning)
+		err = waitForInstanceStatus(c, ins.InstanceId, utils.StringP(instanceStatusRunning))
+		fmt.Println("------------------ instance -----------------------")
+		fmt.Println(*ins)
+		fmt.Println("---------------------------------------------------------")
 		return ins, err
 	}
 	return nil, errors.New(fmt.Sprintf("failed to create instance"))
 }
 
-func getInstace(c *ec2.EC2, id string) (*ec2.Instance, error) {
+func GetInstance(c *ec2.EC2, id *string) (*ec2.Instance, error) {
 	out, err := c.DescribeInstances(&ec2.DescribeInstancesInput{
-		InstanceIds: utils.StringPSlice([]string{id}),
+		InstanceIds: utils.StringPSlice([]string{*id}),
 	})
 	if err != nil {
 		return nil, err
@@ -109,12 +113,12 @@ func getInstace(c *ec2.EC2, id string) (*ec2.Instance, error) {
 	return nil, errors.New(fmt.Sprintf("no instance found with id: %s", id))
 }
 
-func RemoveInstances(c *ec2.EC2, instanceId string) error {
+func RemoveInstances(c *ec2.EC2, instanceId *string) error {
 	_, err := c.TerminateInstances(&ec2.TerminateInstancesInput{
-		InstanceIds: utils.StringPSlice([]string{instanceId}),
+		InstanceIds: utils.StringPSlice([]string{*instanceId}),
 	})
 	if err != nil {
 		return err
 	}
-	return waitForInstanceStatus(c, instanceId, instanceStatusTerminated)
+	return waitForInstanceStatus(c, instanceId, utils.StringP(instanceStatusTerminated))
 }
