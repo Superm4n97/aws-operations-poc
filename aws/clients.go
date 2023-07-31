@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Region = "us-east-2"
+	Region = "us-east-1"
 )
 
 func newSession() (*session.Session, error) {

@@ -5,10 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-func NewSubnet(c *ec2.EC2, vpcID string) (*ec2.Subnet, error) {
+func NewSubnet(c *ec2.EC2, vpcID *string) (*ec2.Subnet, error) {
 	out, err := c.CreateSubnet(&ec2.CreateSubnetInput{
 		CidrBlock: utils.StringP(vpcCIDR),
-		VpcId:     utils.StringP(vpcID),
+		VpcId:     vpcID,
 	})
 	if err != nil {
 		return nil, err
@@ -16,9 +16,9 @@ func NewSubnet(c *ec2.EC2, vpcID string) (*ec2.Subnet, error) {
 	return out.Subnet, nil
 }
 
-func RemoveSubnet(c *ec2.EC2, subnetID string) error {
+func RemoveSubnet(c *ec2.EC2, subnetID *string) error {
 	_, err := c.DeleteSubnet(&ec2.DeleteSubnetInput{
-		SubnetId: utils.StringP(subnetID),
+		SubnetId: subnetID,
 	})
 	return err
 }
