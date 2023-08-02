@@ -2,7 +2,7 @@ package ec2
 
 import (
 	"errors"
-	"github.com/Superm4n97/aws-operations-poc/utils"
+	"github.com/Superm4n97/aws-operations-poc/utils/convert"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -27,7 +27,7 @@ type DestinationOptions struct {
 func NewRoute(c *ec2.EC2, desOps *DestinationOptions, routeTableId *string) error {
 	_, err := c.CreateRoute(&ec2.CreateRouteInput{
 		CarrierGatewayId:            desOps.CarrierGatewayId,
-		DestinationCidrBlock:        utils.StringP(allIPs),
+		DestinationCidrBlock:        convert.StringP(allIPs),
 		EgressOnlyInternetGatewayId: desOps.EgressOnlyInternetGatewayId,
 		GatewayId:                   desOps.GatewayId,
 		InstanceId:                  desOps.InstanceId,
@@ -48,7 +48,7 @@ func RouteTable(c *ec2.EC2, vpcId *string) (*ec2.RouteTable, error) {
 		return nil, err
 	}
 	for _, rt := range out.RouteTables {
-		if rt.VpcId == vpcId {
+		if *rt.VpcId == *vpcId {
 			return rt, nil
 		}
 	}

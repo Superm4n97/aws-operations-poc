@@ -1,4 +1,4 @@
-package utils
+package convert
 
 func StringP(st string) *string {
 	return &st

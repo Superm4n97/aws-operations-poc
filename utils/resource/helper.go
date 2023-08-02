@@ -1,4 +1,4 @@
-package aws
+package resource
 
 import (
 	"errors"
@@ -8,11 +8,12 @@ import (
 
 func WaitForState(retry, timeout time.Duration, getStatus func() (bool, error)) error {
 	for t := time.Second * 0; t <= timeout; t += retry {
+		fmt.Println("getting state")
 		res, err := getStatus()
 		if err != nil {
 			return err
 		}
-		if res {
+		if res == true {
 			return nil
 		}
 		fmt.Println("retrying")

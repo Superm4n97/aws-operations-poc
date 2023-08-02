@@ -3,7 +3,7 @@ package ec2
 import (
 	"errors"
 	"fmt"
-	"github.com/Superm4n97/aws-operations-poc/utils"
+	"github.com/Superm4n97/aws-operations-poc/utils/convert"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -14,7 +14,7 @@ const (
 
 func GetKeyPair(c *ec2.EC2, name string) (*ec2.KeyPairInfo, error) {
 	out, err := c.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{
-		KeyNames: utils.StringPSlice([]string{name}),
+		KeyNames: convert.StringPSlice([]string{name}),
 	})
 	if err != nil {
 		return nil, err
@@ -27,9 +27,9 @@ func GetKeyPair(c *ec2.EC2, name string) (*ec2.KeyPairInfo, error) {
 
 func NewKeyPair(c *ec2.EC2, keypairName string) (*ec2.CreateKeyPairOutput, error) {
 	keypairInput := &ec2.CreateKeyPairInput{
-		KeyFormat:         utils.StringP(keyFormat),
+		KeyFormat:         convert.StringP(keyFormat),
 		KeyName:           &keypairName,
-		KeyType:           utils.StringP(keyType),
+		KeyType:           convert.StringP(keyType),
 		TagSpecifications: nil,
 	}
 	return c.CreateKeyPair(keypairInput)

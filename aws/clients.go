@@ -1,21 +1,18 @@
 package aws
 
 import (
+	_credentials "github.com/Superm4n97/aws-operations-poc/utils/credentials"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	_ "github.com/aws/aws-sdk-go/service/ec2"
-)
-
-var (
-	Region = "us-east-1"
 )
 
 func newSession() (*session.Session, error) {
+	region := _credentials.Region
 	awsCfg := &aws.Config{
-		Region:      &Region,
-		Credentials: credentials.NewStaticCredentials(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, ""),
+		Region:      &region,
+		Credentials: credentials.NewStaticCredentials(_credentials.AWS_ACCESS_KEY_ID, _credentials.AWS_SECRET_ACCESS_KEY, ""),
 	}
 
 	sess, err := session.NewSession(awsCfg)

@@ -3,10 +3,9 @@ package ec2
 import (
 	"errors"
 	"fmt"
-	"github.com/Superm4n97/aws-operations-poc/aws"
-	"github.com/Superm4n97/aws-operations-poc/utils"
-	ec2 "github.com/aws/aws-sdk-go/service/ec2"
-	_ "k8s.io/apimachinery/pkg/util/wait"
+	"github.com/Superm4n97/aws-operations-poc/utils/convert"
+	_credentials "github.com/Superm4n97/aws-operations-poc/utils/credentials"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"time"
 )
 
@@ -44,9 +43,9 @@ var imageID = map[string]string{
 func network(subnetID *string) []*ec2.InstanceNetworkInterfaceSpecification {
 	var ret []*ec2.InstanceNetworkInterfaceSpecification
 	ret = append(ret, &ec2.InstanceNetworkInterfaceSpecification{
-		AssociatePublicIpAddress: utils.BoolP(true),
-		DeleteOnTermination:      utils.BoolP(true),
-		DeviceIndex:              utils.I64P(0),
+		AssociatePublicIpAddress: convert.BoolP(true),
+		DeleteOnTermination:      convert.BoolP(true),
+		DeviceIndex:              convert.I64P(0),
 		SubnetId:                 subnetID,
 	})
 	return ret
@@ -54,12 +53,12 @@ func network(subnetID *string) []*ec2.InstanceNetworkInterfaceSpecification {
 
 func instanceSpecification(keypairName, subnetId *string) *ec2.RunInstancesInput {
 	return &ec2.RunInstancesInput{
-		InstanceType:      utils.StringP(instanceType),
-		ImageId:           utils.StringP(imageID[aws.Region]),
+		InstanceType:      convert.StringP(instanceType),
+		ImageId:           convert.StringP(imageID[_credentials.Region]),
 		KeyName:           keypairName,
 		NetworkInterfaces: network(subnetId),
-		MinCount:          utils.I64P(minCount),
-		MaxCount:          utils.I64P(maxCount),
+		MinCount:          convert.I64P(minCount),
+		MaxCount:          convert.I64P(maxCount),
 		UserData:          nil,
 	}
 }
@@ -89,7 +88,7 @@ func NewInstance(c *ec2.EC2, keypairName, subnetId *string) (*ec2.Instance, erro
 	}
 
 	for _, ins := range reserv.Instances {
-		err = waitForInstanceStatus(c, ins.InstanceId, utils.StringP(instanceStatusRunning))
+		err = waitForInstanceStatus(c, ins.InstanceId, convert.StringP(instanceStatusRunning))
 		fmt.Println("------------------ instance -----------------------")
 		fmt.Println(*ins)
 		fmt.Println("---------------------------------------------------------")
@@ -100,7 +99,7 @@ func NewInstance(c *ec2.EC2, keypairName, subnetId *string) (*ec2.Instance, erro
 
 func GetInstance(c *ec2.EC2, id *string) (*ec2.Instance, error) {
 	out, err := c.DescribeInstances(&ec2.DescribeInstancesInput{
-		InstanceIds: utils.StringPSlice([]string{*id}),
+		InstanceIds: convert.StringPSlice([]string{*id}),
 	})
 	if err != nil {
 		return nil, err
@@ -115,10 +114,10 @@ func GetInstance(c *ec2.EC2, id *string) (*ec2.Instance, error) {
 
 func RemoveInstances(c *ec2.EC2, instanceId *string) error {
 	_, err := c.TerminateInstances(&ec2.TerminateInstancesInput{
-		InstanceIds: utils.StringPSlice([]string{*instanceId}),
+		InstanceIds: convert.StringPSlice([]string{*instanceId}),
 	})
 	if err != nil {
 		return err
 	}
-	return waitForInstanceStatus(c, instanceId, utils.StringP(instanceStatusTerminated))
+	return waitForInstanceStatus(c, instanceId, convert.StringP(instanceStatusTerminated))
 }
