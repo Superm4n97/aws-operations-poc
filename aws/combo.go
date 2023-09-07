@@ -7,9 +7,9 @@ import (
 )
 
 // VpcWithInternetGateway creates resources in the following order
-//   - VPC
-//   - Subnet
-//   - Internet Gateway
+//   - Create VPC
+//   - Create Subnet
+//   - Create Internet Gateway
 //   - Attach Internet Gateway to VPC
 //   - Update Route entry
 func VpcWithInternetGateway(c *ec2.EC2) error {
